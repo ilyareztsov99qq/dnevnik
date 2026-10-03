@@ -1,0 +1,2139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Дневник</title>
+    <style>
+        /* ================= ДИЗАЙН-СИСТЕМА И ПЕРЕМЕННЫЕ ================= */
+        :root {
+            --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --bg-color: #f1f5f9;
+            --sidebar-bg: #0f172a;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-sub: rgba(248, 250, 252, 0.75);
+            --border-color: rgba(226, 232, 240, 0.8);
+            --border-focus: #3b82f6;
+            
+            --accent-primary: #3b82f6;
+            --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            --accent-glow: rgba(59, 130, 246, 0.25);
+            
+            --success: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.12);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.12);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.12);
+            --purple: #8b5cf6;
+            --purple-bg: rgba(139, 92, 246, 0.12);
+            
+            --wine-border: #ca8a04;
+            --wine-bg: #fefce8;
+            --wine-text: #854d0e;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
+            --shadow-float: 0 12px 30px rgba(0, 0, 0, 0.08);
+
+            --bottom-nav-height: 70px;
+        }
+
+        /* Темная OLED-тема */
+        body.dark-mode {
+            --bg-color: #030712;
+            --sidebar-bg: #090d16;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-bg: rgba(17, 24, 39, 0.75);
+            --card-sub: rgba(31, 41, 55, 0.55);
+            --border-color: rgba(55, 65, 81, 0.6);
+            --border-focus: #60a5fa;
+
+            --wine-border: #eab308;
+            --wine-bg: rgba(74, 53, 10, 0.35);
+            --wine-text: #fef08a;
+
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+            --shadow-float: 0 16px 36px rgba(0, 0, 0, 0.55);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            height: 100vh; /* фолбэк для браузеров без dvh */
+            height: 100dvh;
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+            display: flex;
+            transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ================= ДЕСКТОПНЫЙ САЙДБАР ================= */
+        .sidebar {
+            width: 270px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            padding: 28px 0 20px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-shrink: 0;
+            border-right: 1px solid rgba(255,255,255,0.06);
+            z-index: 50;
+        }
+
+        .sidebar-brand {
+            padding: 0 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sidebar-brand h2 {
+            margin: 0;
+            font-size: 21px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .brand-badge {
+            background: var(--accent-gradient);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .sidebar-nav { display: flex; flex-direction: column; gap: 6px; padding: 0 12px; }
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            padding: 13px 16px;
+            text-align: left;
+            font-size: 14.5px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: var(--radius-md);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-btn .nav-icon { font-size: 18px; transition: transform 0.2s ease; }
+        .nav-btn:hover { background-color: rgba(255, 255, 255, 0.05); color: #f8fafc; }
+        .nav-btn:hover .nav-icon { transform: scale(1.12); }
+        .nav-btn.active {
+            background: rgba(59, 130, 246, 0.16);
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .nav-btn.active .nav-icon { transform: scale(1.15); }
+
+        .sidebar-footer {
+            padding: 16px 16px 0 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* ================= КОНТЕНТНАЯ ЗОНА ================= */
+        .main-wrapper {
+            flex: 1 1 auto;
+            min-height: 0;
+            height: 100vh; /* фолбэк */
+            height: 100dvh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 32px 40px calc(var(--bottom-nav-height) + 20px) 40px;
+            position: relative;
+        }
+
+        .section {
+            display: none;
+            max-width: 1140px;
+            margin: 0 auto;
+            animation: slideUpFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .section.active { display: block; }
+
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translateY(12px) scale(0.995); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Мобильный топбар */
+        .mobile-header {
+            display: none;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            width: 100%;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-color);
+            justify-content: space-between;
+            align-items: center;
+        }
+        .mobile-header h3 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.4px; }
+        .mobile-header-actions { display: flex; gap: 8px; }
+
+        /* ================= ЭЛЕМЕНТЫ UI ================= */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+        }
+        .card:hover {
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-size: 14.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px var(--accent-glow);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-primary:active { transform: scale(0.96); filter: brightness(0.95); }
+
+        .btn-secondary {
+            background: var(--card-sub);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 9px 15px;
+            border-radius: var(--radius-md);
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-secondary:hover { border-color: var(--accent-primary); }
+        .btn-secondary:active { transform: scale(0.96); }
+
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            margin: 6px 0 16px 0;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: var(--card-sub);
+            color: var(--text-main);
+            font-size: 14.5px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input:focus, select:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+
+        /* ================= ДАШБОРД СЕГОДНЯ ================= */
+        .today-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .today-banner h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.6px; }
+
+        .stat-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+        .stat-card-glass {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-label-dim {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-val-huge {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.6px;
+            margin-top: 6px;
+        }
+        .stat-sub-text {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ================= ПИТАНИЕ & МЕНЮ ================= */
+        .days-nav-pills {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            scrollbar-width: none;
+        }
+        .days-nav-pills::-webkit-scrollbar { display: none; }
+        
+        .pill-day-btn {
+            flex: 1;
+            min-width: 52px;
+            padding: 12px 6px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        .pill-day-btn.active {
+            background: var(--accent-gradient);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px var(--accent-glow);
+            transform: translateY(-1px);
+        }
+        .pill-day-btn.is-today::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+        .pill-day-btn.active.is-today::after { background: #ffffff; }
+
+        .meal-card-item {
+            border-left: 4px solid var(--accent-primary);
+            padding: 16px 18px;
+            background: var(--card-sub);
+            border-radius: var(--radius-md);
+            margin-bottom: 14px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+        .meal-card-item.eaten {
+            opacity: 0.55;
+            border-left-color: var(--success);
+            filter: grayscale(0.2);
+        }
+        .meal-card-item.wine {
+            border-left-color: var(--wine-border);
+            background: var(--wine-bg);
+            color: var(--wine-text);
+        }
+
+        .macros-pill-badge {
+            display: inline-block;
+            background: var(--card-bg);
+            color: var(--accent-primary);
+            border: 1px solid var(--border-color);
+            padding: 4px 9px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            margin: 4px 0 6px 0;
+        }
+
+        /* ================= ФИНАНСЫ ================= */
+        .accounts-flow-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 12px;
+        }
+        .acc-card-glass {
+            background: var(--card-sub);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        .acc-card-glass:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+        .acc-badge {
+            font-size: 10.5px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+        .acc-badge.card { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+        .acc-badge.deposit { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .acc-badge.invest { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+        .type-chips-segmented {
+            display: flex;
+            background: var(--card-sub);
+            padding: 4px;
+            border-radius: var(--radius-md);
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+        .type-chip-btn {
+            flex: 1;
+            padding: 9px 4px;
+            border: none;
+            background: transparent;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .type-chip-btn.active {
+            background: var(--card-bg);
+            color: var(--text-main);
+            box-shadow: var(--shadow-sm);
+        }
+        .type-chip-btn.active.expense { color: var(--danger); }
+        .type-chip-btn.active.income { color: var(--success); }
+        .type-chip-btn.active.transfer { color: var(--purple); }
+
+        /* ================= ПРИВЫЧКИ ================= */
+        .habit-row-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+        .habit-row-item.completed {
+            background: var(--success-bg);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+        .habit-check-square {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            background: var(--card-sub);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            color: transparent;
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+            flex-shrink: 0;
+        }
+        .habit-row-item.completed .habit-check-square {
+            background: var(--success);
+            border-color: var(--success);
+            color: #ffffff;
+            transform: scale(1.05);
+        }
+
+        .week-dots-flex { display: flex; gap: 5px; }
+        .week-dot-unit {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: var(--card-sub);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: transparent;
+            transition: all 0.15s;
+        }
+        .week-dot-unit.done {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .heatmap-grid-28 {
+            display: grid;
+            grid-template-columns: repeat(28, 1fr);
+            gap: 4px;
+            margin-top: 10px;
+        }
+        .heat-cell-unit {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            background: var(--card-sub);
+        }
+        .heat-cell-unit.lvl-1 { background: #86efac; }
+        .heat-cell-unit.lvl-2 { background: #22c55e; }
+        .heat-cell-unit.lvl-3 { background: #15803d; }
+
+        /* ================= МОБИЛЬНЫЙ ТАББАР (BOTTOM GLASS) ================= */
+        .bottom-glass-bar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            background: var(--card-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-top: 1px solid var(--border-color);
+            z-index: 1100;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .mobile-tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex: 1 1 0;
+            min-width: 0;
+            min-height: 52px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 8px 4px;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .mobile-tab-btn > span:last-child {
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mobile-tab-btn .tab-icon { font-size: 20px; transition: transform 0.15s ease; }
+        .mobile-tab-btn.active { color: var(--accent-primary); }
+        .mobile-tab-btn.active .tab-icon { transform: scale(1.15) translateY(-2px); }
+
+        /* ================= МОДАЛКА РЕЦЕПТА ================= */
+        .recipe-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: flex-end;
+            justify-content: center;
+            touch-action: none;
+        }
+        .recipe-overlay.open { display: flex; }
+        .recipe-sheet {
+            background: var(--card-bg);
+            color: var(--text-main);
+            width: 100%;
+            max-width: 540px;
+            max-height: 88vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--border-color);
+            border-radius: 20px 20px 0 0;
+            padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 12px)) 18px;
+            touch-action: pan-y;
+            animation: sheetUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes sheetUp {
+            from { transform: translateY(28px); opacity: 0.6; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .recipe-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .recipe-close {
+            background: var(--card-sub);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            font-size: 15px;
+            line-height: 1;
+            cursor: pointer;
+            flex-shrink: 0;
+            touch-action: manipulation;
+        }
+        .recipe-close:active { transform: scale(0.95); }
+        .macro-chip {
+            display: inline-block;
+            background: var(--card-sub);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 700;
+            margin: 0 6px 6px 0;
+        }
+        .recipe-section {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin: 16px 0 6px 0;
+        }
+        .recipe-ing-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+        .recipe-steps { margin: 0; padding: 0; list-style: none; counter-reset: rstep; }
+        .recipe-steps li {
+            position: relative;
+            padding: 9px 0 9px 32px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            counter-increment: rstep;
+        }
+        .recipe-steps li::before {
+            content: counter(rstep);
+            position: absolute;
+            left: 0;
+            top: 9px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            color: var(--accent-primary);
+            font-size: 12px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .recipe-steps li:last-child { border-bottom: none; }
+        .recipe-hint { font-size: 12px; color: var(--text-muted); margin-top: 14px; }
+        .recipe-wine {
+            background: var(--wine-bg);
+            border: 1px solid var(--wine-border);
+            color: var(--wine-text);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 13.5px;
+            line-height: 1.5;
+        }
+        .meal-card-item { cursor: pointer; }
+        .meal-chevron { color: var(--text-muted); font-size: 20px; line-height: 1; flex-shrink: 0; align-self: center; }
+
+        @media (min-width: 1025px) { /* на ПК окно по центру */
+            .recipe-overlay { align-items: center; }
+            .recipe-sheet { border-radius: 20px; max-height: 80vh; }
+        }
+
+        /* ================= АДАПТАЦИЯ ПОД СМАРТФОНЫ =================
+           Порог 1024px покрывает телефоны и в портрете, и в ландшафте,
+           а также фолбэк-вьюпорт 980px, если meta viewport проигнорирован. */
+        @media (max-width: 1024px) {
+            /* КРИТИЧНО: body — flex-контейнер, по умолчанию в строку.
+               Без этого .mobile-header становится вертикальной плашкой слева,
+               а контент зажимается в узкую колонку справа. */
+            body { flex-direction: column; }
+
+            .sidebar { display: none; }
+            .mobile-header {
+                display: flex;
+                position: static;
+                width: 100%;
+                flex-shrink: 0;
+            }
+            .bottom-glass-bar { display: flex; }
+
+            .main-wrapper {
+                flex: 1 1 auto;
+                min-height: 0;
+                height: auto;
+                width: 100%;
+                padding: 16px 16px calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 12px) + 24px) 16px;
+            }
+
+            .stat-grid-3 { grid-template-columns: 1fr; gap: 12px; }
+            /* У финансовых плашек число колонок задано inline-стилем — перебиваем его !important */
+            .fin-hero-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; margin-bottom: 16px !important; }
+            .stat-card-glass { padding: 14px; }
+            .stat-val-huge { font-size: 22px; }
+            .desktop-split-flex { flex-direction: column !important; gap: 16px !important; }
+            .today-banner h1 { font-size: 24px; }
+            .card { padding: 18px 16px; border-radius: var(--radius-md); }
+
+            .pill-day-btn { min-width: 44px; padding: 10px 4px; font-size: 13px; }
+
+            .week-dots-flex { display: none; } /* Скрываем 7-дневные кружки в карточке привычек на узком экране для чистоты */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- МОБИЛЬНЫЙ ХЕДЕР -->
+    <div class="mobile-header">
+        <h3>Дневник <span class="brand-badge" style="font-size: 10px; margin-left: 4px;">PRO</span></h3>
+        <div class="mobile-header-actions">
+            <button class="btn-secondary" onclick="toggleTheme()" id="mobile-theme-btn" style="padding: 7px 11px;">🌙</button>
+            <button class="btn-secondary" onclick="exportFullBackup()" style="padding: 7px 11px;">💾</button>
+        </div>
+    </div>
+
+    <!-- ДЕСКТОПНЫЙ САЙДБАР -->
+    <div class="sidebar">
+        <div>
+            <div class="sidebar-brand">
+                <h2>Дневник <span class="brand-badge">PRO</span></h2>
+            </div>
+            <div class="sidebar-nav">
+                <button class="nav-btn active" onclick="switchTab('today', this)"><span class="nav-icon">🎯</span> Главная (Сегодня)</button>
+                <button class="nav-btn" onclick="switchTab('fitness', this)"><span class="nav-icon">💪</span> Питание & Фитнес</button>
+                <button class="nav-btn" onclick="switchTab('finance', this)"><span class="nav-icon">💰</span> Финансовый Хаб</button>
+                <button class="nav-btn" onclick="switchTab('habits', this)"><span class="nav-icon">✅</span> Чек лист дня</button>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-secondary" style="flex:1;" onclick="toggleTheme()" id="desktop-theme-btn">🌙 Тема</button>
+                <button class="btn-secondary" style="flex:1;" onclick="exportFullBackup()">💾 Бэкап</button>
+            </div>
+            <button class="btn-secondary" style="width:100%; font-size:11.5px;" onclick="document.getElementById('import-file-desk').click()">📂 Импорт данных</button>
+            <input type="file" id="import-file-desk" style="display:none;" onchange="importFullBackup(event)">
+        </div>
+    </div>
+
+    <!-- ГЛАВНАЯ ОБЛАСТЬ КОНТЕНТА -->
+    <div class="main-wrapper">
+
+        <!-- ==================== ЭКРАН 1: СЕГОДНЯ ==================== -->
+        <div id="today" class="section active">
+            <div class="today-banner">
+                <div>
+                    <h1 id="today-greeting-title">Доброе утро!</h1>
+                    <div style="color:var(--text-muted); font-size:14px; margin-top:2px;" id="today-date-str">Загрузка даты...</div>
+                </div>
+                <button class="btn-primary" onclick="switchTab('fitness', null)">Открыть план меню →</button>
+            </div>
+
+            <div class="stat-grid-3">
+                <div class="stat-card-glass">
+                    <div class="stat-label-dim">Дневной бюджет комфорта</div>
+                    <div class="stat-val-huge" style="color:var(--success);" id="dash-budget-val">0 ₽</div>
+                    <div class="stat-sub-text">Доступно до конца дня</div>
+                </div>
+                <div class="stat-card-glass">
+                    <div class="stat-label-dim">Калории сегодня</div>
+                    <div class="stat-val-huge" style="color:var(--accent-primary);" id="dash-calories-val">0 / 2000</div>
+                    <div class="stat-sub-text" id="dash-eaten-sub">Съедено 0 из 5 приемов</div>
+                </div>
+                <div class="stat-card-glass">
+                    <div class="stat-label-dim">Чек лист дня</div>
+                    <div class="stat-val-huge" style="color:var(--purple);" id="dash-habits-val">0%</div>
+                    <div class="stat-sub-text" id="dash-habits-sub">0 выполнено</div>
+                </div>
+            </div>
+
+            <div class="desktop-split-flex" style="display: flex; gap: 20px;">
+                <div style="flex: 1.2;">
+                    <div class="card">
+                        <h3 style="margin-top: 0; margin-bottom: 14px; font-size: 17px;">🍽️ Рацион на сегодня</h3>
+                        <div id="dash-meals-preview"></div>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <div class="card">
+                        <h3 style="margin-top: 0; margin-bottom: 14px; font-size: 17px;">⚡ Чек лист дня</h3>
+                        <div id="dash-habits-checklist"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== ЭКРАН 2: ПИТАНИЕ & ФИТНЕС ==================== -->
+        <div id="fitness" class="section">
+            <h1 style="margin: 0 0 18px 0; font-size: 26px; font-weight: 800;">Умный Meal Prep & Баланс</h1>
+
+            <div class="card">
+                <h3 style="margin-top:0; font-size:16px;">Мои параметры и порционность</h3>
+                <div class="desktop-split-flex" style="display: flex; gap: 14px;">
+                    <div style="flex: 1;"><label>Рост (см):</label><input type="number" id="height" placeholder="180"></div>
+                    <div style="flex: 1;"><label>Вес (кг):</label><input type="number" id="weight" placeholder="80"></div>
+                    <div style="flex: 1;">
+                        <label>Цель:</label>
+                        <select id="goal">
+                            <option value="lose">Снижение веса (дефицит)</option>
+                            <option value="maintain">Поддержание формы</option>
+                            <option value="gain">Набор массы</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Персон (порций):</label>
+                        <select id="persons" onchange="onPersonsChanged()">
+                            <option value="1">1 персона</option>
+                            <option value="2">2 персоны</option>
+                            <option value="3">3 персоны</option>
+                            <option value="4">4 персоны</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                    <button class="btn-primary" onclick="calculateAndGenerateWeek()">Составить логичное меню</button>
+                    <span id="calorie-result" style="font-weight: 700; color: var(--accent-primary);"></span>
+                </div>
+            </div>
+
+            <div class="desktop-split-flex" style="display: flex; gap: 20px;">
+                <div style="flex: 1.8;">
+                    <div class="card">
+                        <div class="days-nav-pills" id="days-nav" style="display: none;">
+                            <button class="pill-day-btn" id="day-btn-0" onclick="showDay(0)">Пн</button>
+                            <button class="pill-day-btn" id="day-btn-1" onclick="showDay(1)">Вт</button>
+                            <button class="pill-day-btn" id="day-btn-2" onclick="showDay(2)">Ср</button>
+                            <button class="pill-day-btn" id="day-btn-3" onclick="showDay(3)">Чт</button>
+                            <button class="pill-day-btn" id="day-btn-4" onclick="showDay(4)">Пт</button>
+                            <button class="pill-day-btn" id="day-btn-5" onclick="showDay(5)">Сб</button>
+                            <button class="pill-day-btn" id="day-btn-6" onclick="showDay(6)">Вс</button>
+                        </div>
+                        <div id="meal-plan-container"><p style="color:var(--text-muted);">Рассчитайте калории, чтобы сгенерировать меню.</p></div>
+                    </div>
+                </div>
+
+                <div style="flex: 1.2;">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="margin:0; font-size:16.5px;">🛒 Список продуктов</h3>
+                            <label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="hide-checked-groceries" onchange="updateGroceryList()" style="width:auto; margin:0 4px 0 0;"> Скрыть купленное</label>
+                        </div>
+                        <div style="display:flex; gap:8px; margin-bottom:12px;">
+                            <button class="btn-secondary" id="tab-daily" style="flex:1; padding:6px 8px; font-size:12px;" onclick="setGroceryMode('daily')">На день</button>
+                            <button class="btn-secondary" id="tab-weekly" style="flex:1; padding:6px 8px; font-size:12px;" onclick="setGroceryMode('weekly')">На неделю</button>
+                        </div>
+                        <ul id="grocery-list-container" style="list-style:none; padding:0; margin:0;"></ul>
+                        <div id="grocery-total-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== ЭКРАН 3: ФИНАНСЫ ==================== -->
+        <div id="finance" class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 8px;">
+                <h1 style="margin: 0; font-size: 26px; font-weight: 800;">Финансовый Хаб & Капитал</h1>
+                <div style="font-size: 13px; color: var(--text-muted);" id="fin-passive-forecast">Прогноз вкладов: +0 ₽/мес</div>
+            </div>
+
+            <!-- Синхронизация -->
+            <div class="card" style="background: var(--success-bg); border-color: rgba(16, 185, 129, 0.3); display: flex; justify-content: space-between; align-items: center; padding: 14px 18px;">
+                <div>
+                    <b style="color: var(--success);">💡 Синхронизация покупок:</b>
+                    <span style="font-size: 13px; margin-left: 4px; color: var(--text-muted);">Списать корзину питания прямо в расходы месяца</span>
+                </div>
+                <button class="btn-primary" style="padding: 7px 12px; font-size: 12px;" onclick="syncGroceryToFinance()">Списать</button>
+            </div>
+
+            <div class="fin-hero-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px;">
+                <div class="stat-card-glass">
+                    <div class="stat-label-dim">Чистый капитал</div>
+                    <div class="stat-val-huge" id="fin-net-worth">0 ₽</div>
+                    <div class="stat-sub-text">Все счета и активы</div>
+                </div>
+                <div class="stat-card-glass">
+                    <div class="stat-label-dim">Дневной бюджет</div>
+                    <div class="stat-val-huge" style="color: var(--success);" id="fin-daily-budget">0 ₽/день</div>
+                    <div class="stat-sub-text" id="fin-days-left">на свободные траты</div>
+                </div>
+                <div class="stat-card-glass">
+                    <div class="stat-label-dim">Подушка безопасности</div>
+                    <div class="stat-val-huge" style="color: var(--accent-primary);" id="fin-runway">0 мес.</div>
+                    <div class="stat-sub-text">Жизнь без дохода</div>
+                </div>
+                <div class="stat-card-glass">
+                    <div class="stat-label-dim">Норма сбережений</div>
+                    <div class="stat-val-huge" id="fin-savings-rate">0%</div>
+                    <div class="stat-sub-text">Цель: от 20%</div>
+                </div>
+            </div>
+
+            <div class="desktop-split-flex" style="display: flex; gap: 20px;">
+                <div style="flex: 1.3;">
+                    <!-- 50/30/20 -->
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                            <h3 style="margin: 0; font-size: 16.5px;">Правило 50 / 30 / 20</h3>
+                            <span id="fin-month-income-badge" style="font-size: 12px; font-weight:700; color:var(--success);">Доход: 0 ₽</span>
+                        </div>
+
+                        <div style="background: var(--card-sub); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
+                            <label>Мой доход в месяц (₽):</label>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="number" id="fin-income" placeholder="100000" style="margin: 0;" oninput="saveFinSettings()">
+                                <button class="btn-secondary" onclick="saveFinSettings()">Сохранить</button>
+                            </div>
+
+                            <label style="margin-top: 10px; display: block;">Обязательные платежи в месяц (₽):</label>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="number" id="fin-fixed" placeholder="напр. 45000" style="margin: 0;" oninput="saveFinSettings()">
+                                <button class="btn-secondary" onclick="saveFinSettings()">Сохранить</button>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">От дохода считаются 50 / 30 / 20 и дневной лимит трат. Обязательные платежи (аренда, ЖКХ, кредиты, подписки) в лимит не входят и уменьшаются по мере оплаты.</div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
+                                <span>🏠 50% — Базовые нужды</span>
+                                <span id="rule-needs-text">0 ₽ / 0 ₽</span>
+                            </div>
+                            <div style="height: 8px; background: var(--card-sub); border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
+                                <div id="rule-needs-bar" style="height: 100%; width: 0%; background: #3b82f6; transition: width 0.3s;"></div>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
+                                <span>🥂 30% — Стиль жизни & Вино</span>
+                                <span id="rule-wants-text">0 ₽ / 0 ₽</span>
+                            </div>
+                            <div style="height: 8px; background: var(--card-sub); border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
+                                <div id="rule-wants-bar" style="height: 100%; width: 0%; background: #f59e0b; transition: width 0.3s;"></div>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
+                                <span>📈 20% — Инвестиции & Капитал</span>
+                                <span id="rule-savings-text">0 ₽ / 0 ₽</span>
+                            </div>
+                            <div style="height: 8px; background: var(--card-sub); border-radius: 4px; overflow: hidden;">
+                                <div id="rule-savings-bar" style="height: 100%; width: 0%; background: #10b981; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Счета -->
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                            <h3 style="margin: 0; font-size: 16.5px;">🏦 Счета и активы</h3>
+                            <button class="btn-secondary" onclick="promptAddAccount()">+ Счет</button>
+                        </div>
+                        <div class="accounts-flow-grid" id="accounts-container"></div>
+                    </div>
+                </div>
+
+                <div style="flex: 1;">
+                    <!-- Новая транзакция -->
+                    <div class="card">
+                        <h3 style="margin: 0 0 14px 0; font-size: 16.5px;">⚡ Записать операцию</h3>
+                        <div class="type-chips-segmented">
+                            <button class="type-chip-btn active expense" id="chip-expense" onclick="setTxType('expense')">Расход</button>
+                            <button class="type-chip-btn income" id="chip-income" onclick="setTxType('income')">Доход</button>
+                            <button class="type-chip-btn" id="chip-invest" onclick="setTxType('invest')">Инвест</button>
+                            <button class="type-chip-btn" id="chip-transfer" onclick="setTxType('transfer')">Перевод</button>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 1.2;">
+                                <label>Сумма (₽):</label>
+                                <input type="number" id="tx-amount" placeholder="1500">
+                            </div>
+                            <div style="flex: 1;">
+                                <label id="tx-acc-label">Счет списания:</label>
+                                <select id="tx-account"></select>
+                            </div>
+                        </div>
+
+                        <div id="transfer-destination-wrap" style="display:none;">
+                            <label>Счет зачисления (куда):</label>
+                            <select id="tx-account-to"></select>
+                        </div>
+
+                        <div id="standard-cat-wrap" style="display: flex; gap: 10px;">
+                            <div style="flex: 1;">
+                                <label>Категория:</label>
+                                <select id="tx-category"></select>
+                            </div>
+                            <div style="flex: 1.2;">
+                                <label>Описание:</label>
+                                <input type="text" id="tx-desc" placeholder="Супермаркет, вино, кофе...">
+                            </div>
+                        </div>
+
+                        <button class="btn-primary" style="width: 100%;" onclick="submitTransaction()">Подтвердить запись</button>
+                    </div>
+
+                    <!-- История -->
+                    <div class="card">
+                        <h3 style="margin: 0 0 12px 0; font-size: 16.5px;">История операций</h3>
+                        <ul class="tx-list" id="tx-list-container" style="list-style:none; padding:0; margin:0;"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== ЭКРАН 4: ПРИВЫЧКИ ==================== -->
+        <div id="habits" class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <h1 style="margin: 0; font-size: 26px; font-weight: 800;">Чек лист дня</h1>
+                <button class="btn-primary" onclick="promptAddHabit()">+ Пункт</button>
+            </div>
+
+            <div class="card" style="padding: 16px 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                    <span>Матрица активности (28 дней)</span>
+                    <span style="font-size: 11px;">◽ Меньше ◾ Больше</span>
+                </div>
+                <div class="heatmap-grid-28" id="habit-heatmap"></div>
+            </div>
+
+            <div class="card">
+                <h4 style="margin: 0 0 12px 0; color: var(--text-muted); text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">🌅 Утро</h4>
+                <div id="habits-list-morning"></div>
+
+                <h4 style="margin: 16px 0 12px 0; color: var(--text-muted); text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">☀️ День</h4>
+                <div id="habits-list-day"></div>
+
+                <h4 style="margin: 16px 0 12px 0; color: var(--text-muted); text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">🌙 Вечер</h4>
+                <div id="habits-list-evening"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- МОБИЛЬНЫЙ СТЕКЛЯННЫЙ ТАББАР -->
+    <div class="bottom-glass-bar">
+        <button class="mobile-tab-btn active" onclick="switchTab('today', this)">
+            <span class="tab-icon">🎯</span>
+            <span>Сегодня</span>
+        </button>
+        <button class="mobile-tab-btn" onclick="switchTab('fitness', this)">
+            <span class="tab-icon">💪</span>
+            <span>Питание</span>
+        </button>
+        <button class="mobile-tab-btn" onclick="switchTab('finance', this)">
+            <span class="tab-icon">💰</span>
+            <span>Финансы</span>
+        </button>
+        <button class="mobile-tab-btn" onclick="switchTab('habits', this)">
+            <span class="tab-icon">✅</span>
+            <span>Чек лист</span>
+        </button>
+    </div>
+
+    <!-- ================= МОДАЛКА РЕЦЕПТА ================= -->
+    <div class="recipe-overlay" id="recipe-modal" onclick="closeRecipe(event)">
+        <div class="recipe-sheet" role="dialog" aria-modal="true" aria-labelledby="recipe-title">
+            <div class="recipe-head">
+                <b id="recipe-title" style="font-size: 17px; line-height: 1.3;"></b>
+                <button class="recipe-close" onclick="closeRecipe()" aria-label="Закрыть">✕</button>
+            </div>
+            <div id="recipe-body"></div>
+        </div>
+    </div>
+
+    <!-- ================= ПОЛНЫЙ СКРИПТОВЫЙ ДВИЖОК ================= -->
+    <script>
+        /* 1. ТЕМА И СИСТЕМНЫЕ БЭКАПЫ */
+        function initTheme() {
+            const isDark = localStorage.getItem('lifeOS_theme') === 'dark';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                updateThemeButtons(true);
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('lifeOS_theme', isDark ? 'dark' : 'light');
+            updateThemeButtons(isDark);
+        }
+
+        function updateThemeButtons(isDark) {
+            const deskBtn = document.getElementById('desktop-theme-btn');
+            const mobBtn = document.getElementById('mobile-theme-btn');
+            if (deskBtn) deskBtn.textContent = isDark ? '☀️ Тема' : '🌙 Тема';
+            if (mobBtn) mobBtn.textContent = isDark ? '☀️' : '🌙';
+        }
+
+        function exportFullBackup() {
+            // ВНИМАНИЕ: ключи localStorage (lifeOS_*) намеренно НЕ переименованы,
+            // чтобы не потерять уже сохранённые данные пользователя.
+            const fullData = {
+                fitness: localStorage.getItem('smartFitnessDataOrig'),
+                fitnessEaten: localStorage.getItem('lifeOS_eaten_meals'),
+                finance: localStorage.getItem('lifeOS_fin_data'),
+                habits: localStorage.getItem('lifeOS_habits_data'),
+                groceriesChecked: localStorage.getItem('lifeOS_checked_groceries'),
+                theme: localStorage.getItem('lifeOS_theme')
+            };
+            const blob = new Blob([JSON.stringify(fullData, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Dnevnik_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importFullBackup(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    if (parsed.fitness) localStorage.setItem('smartFitnessDataOrig', parsed.fitness);
+                    if (parsed.fitnessEaten) localStorage.setItem('lifeOS_eaten_meals', parsed.fitnessEaten);
+                    if (parsed.finance) localStorage.setItem('lifeOS_fin_data', parsed.finance);
+                    if (parsed.habits) localStorage.setItem('lifeOS_habits_data', parsed.habits);
+                    if (parsed.groceriesChecked) localStorage.setItem('lifeOS_checked_groceries', parsed.groceriesChecked);
+                    if (parsed.theme) localStorage.setItem('lifeOS_theme', parsed.theme);
+                    alert('Данные «Дневник» успешно восстановлены!');
+                    location.reload();
+                } catch(err) { alert('Ошибка чтения файла: ' + err.message); }
+            };
+            reader.readAsText(file);
+        }
+
+        /* 2. ПИТАНИЕ & ФИТНЕС */
+        const priceBook = {
+            "Овсянка": 0.12, "Молоко": 0.09, "Ягоды": 0.70, "Орехи грецкие": 1.20,
+            "Яйца": 14.0, "Сыр твердый": 0.90, "Помидор": 35.0, "Помидоры черри": 0.45,
+            "Хлеб": 6.0, "Творог 5%": 0.45, "Мука рисовая": 0.20, "Мед": 20.0,
+            "Авокадо": 90.0, "Семена чиа": 1.0, "Молоко кокосовое": 0.35, "Банан": 25.0,
+            "Овсяные хлопья": 0.12, "Сыр творожный": 0.65, "Яблоко": 25.0,
+            "Греческий йогурт": 0.45, "Куриное филе": 0.42, "Гречка": 0.10,
+            "Огурец": 30.0, "Макароны": 0.15, "Фарш говяжий": 0.60, "Томатная паста": 15.0,
+            "Филе индейки": 0.52, "Рис бурый": 0.18, "Сливки 10%": 0.15,
+            "Красная чечевица": 0.22, "Морковь": 8.0, "Говядина постная": 0.85,
+            "Свиная вырезка": 0.48, "Картофель": 12.0, "Салат Айсберг": 0.40,
+            "Лаваш": 25.0, "Брокколи": 0.45, "Стручковая фасоль": 0.35, "Лук": 8.0,
+            "Тофу": 0.40, "Кабачок": 35.0, "Руккола": 1.2, "Сыр Фета": 0.85,
+            "Арахисовая паста": 25.0, "Миндаль": 1.3, "Протеин": 85.0, "Хлебцы": 7.0,
+            "Кефир 2.5%": 0.10, "Хумус": 0.80, "Темный шоколад": 2.0, "Кофе": 35.0,
+            "Виноград": 0.35, "Мягкий творог 5%": 0.40, "Груша": 40.0
+        };
+
+        const weeklyMasterPlan = [
+            {
+                dayName: "Понедельник",
+                breakfast: { name: "Сливочная овсянка с ягодами и орехами", macros: { kcal: 350, p: 12, f: 10, c: 53 }, ingredients: [{n: "Овсянка", a: 50, u: "г"}, {n: "Молоко", a: 150, u: "мл"}, {n: "Ягоды", a: 100, u: "г"}, {n: "Орехи грецкие", a: 20, u: "г"}], steps: ["Варить овсянку 10 мин на молоке с водой.", "Украсить ягодами и орехами."] },
+                snack1: { name: "Яблоко с арахисовой пастой", macros: { kcal: 180, p: 5, f: 10, c: 20 }, ingredients: [{n: "Яблоко", a: 1, u: "шт"}, {n: "Арахисовая паста", a: 1, u: "ст.л"}], steps: ["Нарезать дольками."] },
+                lunch: { name: "Куриная грудка с рассыпчатой гречкой", prepTip: "💡 Запекаем двойную порцию филе на завтра!", macros: { kcal: 500, p: 45, f: 10, c: 55 }, ingredients: [{n: "Куриное филе", a: 180, u: "г"}, {n: "Гречка", a: 70, u: "г"}, {n: "Помидор", a: 1, u: "шт"}], steps: ["Сварить гречку, запечь филе 20 мин."] },
+                snack2: { name: "Горсть сырого миндаля", macros: { kcal: 160, p: 6, f: 14, c: 5 }, ingredients: [{n: "Миндаль", a: 30, u: "г"}], steps: ["Полезный перекус."] },
+                dinner: { name: "Нежная свиная вырезка с томленым луком", prepTip: "🥩 Смена белка: курица не надоедает за день.", macros: { kcal: 380, p: 40, f: 12, c: 5 }, ingredients: [{n: "Свиная вырезка", a: 200, u: "г"}, {n: "Лук", a: 1, u: "шт"}, {n: "Огурец", a: 1, u: "шт"}], steps: ["Обжарить медальоны по 3.5 мин с каждой стороны с луком."], winePairing: { name: "Грюнер Вельтлинер", style: "Белое сухое", bottleRef: "от 750 ₽", note: "Фирменная перечная свежесть австрийского сорта идеальна для вырезки.", macros: { kcal: 118, p: 0, f: 0, c: 2.8 } } }
+            },
+            {
+                dayName: "Вторник",
+                breakfast: { name: "Пышный омлет с сыром и томатом", macros: { kcal: 400, p: 25, f: 25, c: 15 }, ingredients: [{n: "Яйца", a: 3, u: "шт"}, {n: "Сыр твердый", a: 30, u: "г"}, {n: "Хлеб", a: 1, u: "кус."}], steps: ["Взбить яйца, готовить 4 мин под крышкой с сыром."] },
+                snack1: { name: "Хлебцы с творожным сыром", macros: { kcal: 140, p: 5, f: 6, c: 15 }, ingredients: [{n: "Хлебцы", a: 2, u: "шт"}, {n: "Сыр творожный", a: 30, u: "г"}], steps: ["Намазать сыр."] },
+                lunch: { name: "Хрустящий ролл с курицей", prepTip: "♻️ Используем вчерашнее готовое филе!", macros: { kcal: 520, p: 35, f: 15, c: 60 }, ingredients: [{n: "Лаваш", a: 1, u: "шт"}, {n: "Куриное филе", a: 150, u: "г"}, {n: "Огурец", a: 1, u: "шт"}], steps: ["Завернуть соломку курицы и огурца в лаваш."] },
+                snack2: { name: "Греческий йогурт", macros: { kcal: 100, p: 10, f: 4, c: 5 }, ingredients: [{n: "Греческий йогурт", a: 150, u: "г"}], steps: ["Белковый снек."] },
+                dinner: { name: "Запеченный тофу в специях с брокколи", prepTip: "🌱 Разгрузочный ужин.", macros: { kcal: 330, p: 25, f: 15, c: 15 }, ingredients: [{n: "Тофу", a: 150, u: "г"}, {n: "Брокколи", a: 150, u: "г"}], steps: ["Тофу запечь 15 мин, брокколи отварить 3 мин."], winePairing: { name: "Совиньон Блан", style: "Белое хрустящее", bottleRef: "от 700 ₽", note: "Хрустящая кислотность гармонирует с овощами.", macros: { kcal: 119, p: 0, f: 0, c: 2.8 } } }
+            },
+            {
+                dayName: "Среда",
+                breakfast: { name: "Чиа-пудинг с бананом", macros: { kcal: 300, p: 8, f: 15, c: 35 }, ingredients: [{n: "Семена чиа", a: 30, u: "г"}, {n: "Молоко кокосовое", a: 150, u: "мл"}, {n: "Банан", a: 1, u: "шт"}], steps: ["Замочить чиа с вечера в кокосовом молоке."] },
+                snack1: { name: "Свежая груша", macros: { kcal: 70, p: 1, f: 0, c: 18 }, ingredients: [{n: "Груша", a: 1, u: "шт"}], steps: ["Нарезать ломтиками."] },
+                lunch: { name: "Паста Болоньезе", prepTip: "💡 Вторую половину фарша пускаем на биточки завтра!", macros: { kcal: 600, p: 35, f: 20, c: 65 }, ingredients: [{n: "Макароны", a: 80, u: "г"}, {n: "Фарш говяжий", a: 200, u: "г"}, {n: "Томатная паста", a: 2, u: "ст.л"}], steps: ["Потушить фарш с пастой, смешать с макаронами."] },
+                snack2: { name: "Кефир 2.5%", macros: { kcal: 100, p: 6, f: 5, c: 8 }, ingredients: [{n: "Кефир 2.5%", a: 200, u: "мл"}], steps: ["Выпить охлажденным."] },
+                dinner: { name: "Греческий салат с Фетой", prepTip: "🥗 Легкий средиземноморский ужин.", macros: { kcal: 320, p: 15, f: 22, c: 15 }, ingredients: [{n: "Сыр Фета", a: 60, u: "г"}, {n: "Помидор", a: 1, u: "шт"}, {n: "Огурец", a: 1, u: "шт"}], steps: ["Крупно нарезать овощи, добавить фету и масло."], winePairing: { name: "Пино Гриджо", style: "Белое легкое", bottleRef: "от 600 ₽", note: "Цитрусовый тон идеально оттеняет фету.", macros: { kcal: 115, p: 0, f: 0, c: 2.5 } } }
+            },
+            {
+                dayName: "Четверг",
+                breakfast: { name: "Авокадо-тост с яйцом", macros: { kcal: 420, p: 15, f: 20, c: 40 }, ingredients: [{n: "Хлеб", a: 2, u: "кус."}, {n: "Авокадо", a: 0.5, u: "шт"}, {n: "Яйца", a: 1, u: "шт"}], steps: ["Тосты подсушить, размять авокадо, сверху яйцо."] },
+                snack1: { name: "Мягкий творог", macros: { kcal: 130, p: 18, f: 5, c: 3 }, ingredients: [{n: "Мягкий творог 5%", a: 150, u: "г"}], steps: ["Быстрый белок."] },
+                lunch: { name: "Говяжьи биточки с картофелем", prepTip: "♻️ Вторая половина фарша без остатка!", macros: { kcal: 560, p: 35, f: 20, c: 55 }, ingredients: [{n: "Фарш говяжий", a: 200, u: "г"}, {n: "Картофель", a: 200, u: "г"}, {n: "Лук", a: 1, u: "шт"}], steps: ["Запечь биточки 20 мин, отварить картофель."] },
+                snack2: { name: "Морковь с хумусом", macros: { kcal: 150, p: 5, f: 8, c: 15 }, ingredients: [{n: "Морковь", a: 1, u: "шт"}, {n: "Хумус", a: 50, u: "г"}], steps: ["Нарезать палочками."] },
+                dinner: { name: "Теплый салат со стручковой фасолью", prepTip: "🥦 Насыщение клетчаткой перед сном.", macros: { kcal: 320, p: 18, f: 18, c: 18 }, ingredients: [{n: "Стручковая фасоль", a: 200, u: "г"}, {n: "Сыр твердый", a: 40, u: "г"}], steps: ["Фасоль отварить 4 мин, посыпать сыром."], winePairing: { name: "Вердехо", style: "Белое структурное", bottleRef: "от 650 ₽", note: "Испанский свежий профиль подчеркивает фасоль.", macros: { kcal: 120, p: 0, f: 0, c: 3.0 } } }
+            },
+            {
+                dayName: "Пятница",
+                breakfast: { name: "ПП-сырники с медом", macros: { kcal: 450, p: 30, f: 15, c: 45 }, ingredients: [{n: "Творог 5%", a: 180, u: "г"}, {n: "Яйца", a: 1, u: "шт"}, {n: "Мука рисовая", a: 30, u: "г"}, {n: "Мед", a: 1, u: "ст.л"}], steps: ["Смешать творог с яйцом и мукой, запечь 18 мин."] },
+                snack1: { name: "Шоколад и эспрессо", macros: { kcal: 110, p: 2, f: 8, c: 10 }, ingredients: [{n: "Темный шоколад", a: 20, u: "г"}, {n: "Кофе", a: 1, u: "порц."}], steps: ["Кофе-пауза."] },
+                lunch: { name: "Индейка карри с бурым рисом", prepTip: "💡 Вторую часть индейки пускаем на рагу в субботу!", macros: { kcal: 550, p: 40, f: 15, c: 60 }, ingredients: [{n: "Филе индейки", a: 200, u: "г"}, {n: "Рис бурый", a: 70, u: "г"}, {n: "Сливки 10%", a: 50, u: "мл"}], steps: ["Потушить индейку в сливках с карри 7 мин."] },
+                snack2: { name: "Виноград", macros: { kcal: 90, p: 1, f: 0, c: 22 }, ingredients: [{n: "Виноград", a: 120, u: "г"}], steps: ["Свежие ягоды."] },
+                dinner: { name: "Салат с ростбифом и рукколой", prepTip: "🥩 Пятничный ресторанный ужин.", macros: { kcal: 310, p: 32, f: 14, c: 10 }, ingredients: [{n: "Говядина постная", a: 160, u: "г"}, {n: "Помидоры черри", a: 100, u: "г"}, {n: "Руккола", a: 50, u: "г"}], steps: ["Обжарить мясо medium rare, выложить на рукколу."], winePairing: { name: "Вионье", style: "Белое плотное", bottleRef: "от 800 ₽", note: "Редкое плотное белое отлично справляется с сочной говядиной.", macros: { kcal: 125, p: 0, f: 0, c: 3.4 } } }
+            },
+            {
+                dayName: "Суббота",
+                breakfast: { name: "Сырный овсяноблин", macros: { kcal: 380, p: 18, f: 15, c: 40 }, ingredients: [{n: "Овсяные хлопья", a: 40, u: "г"}, {n: "Молоко", a: 50, u: "мл"}, {n: "Яйца", a: 1, u: "шт"}, {n: "Сыр творожный", a: 30, u: "г"}], steps: ["Обжарить блин по 2.5 мин с двух сторон, смазать сыром."] },
+                snack1: { name: "Банан и грецкие орехи", macros: { kcal: 190, p: 4, f: 10, c: 25 }, ingredients: [{n: "Банан", a: 1, u: "шт"}, {n: "Орехи грецкие", a: 15, u: "г"}], steps: ["Энергия субботы."] },
+                lunch: { name: "Чечевичный крем-суп", prepTip: "🥣 Легкий растительный суп.", macros: { kcal: 450, p: 22, f: 15, c: 55 }, ingredients: [{n: "Красная чечевица", a: 80, u: "г"}, {n: "Морковь", a: 1, u: "шт"}, {n: "Сливки 10%", a: 50, u: "мл"}], steps: ["Отварить чечевицу с морковью 15 мин, пробить со сливками."] },
+                snack2: { name: "Протеиновый шейк", macros: { kcal: 120, p: 24, f: 1, c: 3 }, ingredients: [{n: "Протеин", a: 1, u: "скуп"}, {n: "Молоко", a: 200, u: "мл"}], steps: ["Взболтать в шейкере."] },
+                dinner: { name: "Овощное рагу с индейкой", prepTip: "♻️ Закрываем вторую половину индейки.", macros: { kcal: 380, p: 35, f: 15, c: 35 }, ingredients: [{n: "Филе индейки", a: 200, u: "г"}, {n: "Кабачок", a: 1, u: "шт"}, {n: "Помидор", a: 1, u: "шт"}], steps: ["Потушить индейку с кабачком и помидором 15 мин."], winePairing: { name: "Гави ди Гави", style: "Белое минеральное", bottleRef: "от 850 ₽", note: "Свежесть Кортезе идеально гармонирует с тушеными овощами.", macros: { kcal: 116, p: 0, f: 0, c: 2.7 } } }
+            },
+            {
+                dayName: "Воскресенье",
+                breakfast: { name: "Творожный крем с печеным яблоком", macros: { kcal: 320, p: 30, f: 8, c: 30 }, ingredients: [{n: "Творог 5%", a: 150, u: "г"}, {n: "Яблоко", a: 1, u: "шт"}, {n: "Греческий йогурт", a: 50, u: "г"}], steps: ["Запечь яблоко с корицей, творог взбить с йогуртом."] },
+                snack1: { name: "Яйцо всмятку", macros: { kcal: 70, p: 6, f: 5, c: 1 }, ingredients: [{n: "Яйца", a: 1, u: "шт"}], steps: ["Варить 6 мин."] },
+                lunch: { name: "Куриное филе с картофелем", macros: { kcal: 520, p: 45, f: 12, c: 50 }, ingredients: [{n: "Куриное филе", a: 180, u: "г"}, {n: "Картофель", a: 200, u: "г"}, {n: "Огурец", a: 1, u: "шт"}], steps: ["Обжарить филе по 4.5 мин с каждой стороны."] },
+                snack2: { name: "Лесные ягоды", macros: { kcal: 60, p: 1, f: 0, c: 14 }, ingredients: [{n: "Ягоды", a: 150, u: "г"}], steps: ["Охлажденные ягоды."] },
+                dinner: { name: "Запеченный тофу с кабачком и травами", prepTip: "🌱 Легкий ужин перед началом недели.", macros: { kcal: 310, p: 24, f: 16, c: 14 }, ingredients: [{n: "Тофу", a: 150, u: "г"}, {n: "Кабачок", a: 1, u: "шт"}], steps: ["Запечь кружки кабачка и тофу 18 мин при 200°C."], winePairing: { name: "Шардоне сухое", style: "Белое сливочное", bottleRef: "от 700 ₽", note: "Сливочные тона сухого Шардоне безупречно сглаживают тофу.", macros: { kcal: 122, p: 0, f: 0, c: 3.2 } } }
+            }
+        ];
+
+        let currentWeeklyPlan = weeklyMasterPlan;
+        let activeDayIndex = (new Date().getDay() === 0) ? 6 : new Date().getDay() - 1;
+        const realTodayIndex = activeDayIndex;
+        let personCount = 1;
+        let groceryMode = 'daily';
+        let eatenMealsState = JSON.parse(localStorage.getItem('lifeOS_eaten_meals') || '{}');
+        let checkedGroceries = JSON.parse(localStorage.getItem('lifeOS_checked_groceries') || '{}');
+
+        /* ================= ВРЕМЯ ПРИГОТОВЛЕНИЯ =================
+           [завтрак, перекус 1, обед, перекус 2, ужин] — минуты по дням недели (Пн..Вс).
+           Проставляется один раз при загрузке — доступно и в карточке меню, и в рецепте. */
+        const COOK_TIME_MAP = [
+            [10, 2, 30, 2, 25], // Понедельник
+            [10, 3, 20, 1, 30], // Вторник
+            [5,  1, 35, 1, 15], // Среда
+            [12, 1, 40, 5, 20], // Четверг
+            [20, 5, 35, 3, 20], // Пятница
+            [15, 2, 30, 3, 35], // Суббота
+            [10, 6, 40, 3, 30]  // Воскресенье
+        ];
+        const MEAL_KEYS_ORDER = ['breakfast', 'snack1', 'lunch', 'snack2', 'dinner'];
+
+        /* Подробные шаги приготовления — по дням (Пн..Вс) и приёмам пищи.
+           Заменяют короткие однострочные подсказки на полноценные рецепты. */
+        const RECIPE_STEPS = [
+            // Понедельник
+            [
+                ["Овсянку залить молоком и варить 5-7 минут на среднем огне, помешивая.", "Снять с огня и дать постоять 2 минуты — каша станет кремовой.", "Добавить ягоды и рубленые грецкие орехи."],
+                ["Яблоко вымыть и нарезать дольками.", "Намазать дольки арахисовой пастой или подать пасту отдельно для макания."],
+                ["Гречку промыть и отварить в подсоленной воде 15-18 минут (1 часть крупы на 2 части воды).", "Филе посолить и обжарить по 5-6 минут с каждой стороны до румяной корочки.", "Дать мясу отдохнуть 3 минуты под фольгой и нарезать.", "Подать с гречкой и помидором, нарезанным дольками."],
+                ["Миндаль подсушить 2-3 минуты на сухой сковороде — так он ароматнее.", "Если орехи соленые, промыть их и обсушить."],
+                ["Вырезку зачистить от пленок, посолить, поперчить и оставить на 10 минут.", "Обжарить по 3 минуты с каждой стороны до корочки, затем убавить огонь и довести 8-10 минут.", "Лук нарезать полукольцами и обжарить до золотистого цвета, добавить к мясу.", "Дать вырезке отдохнуть 5 минут под фольгой, нарезать медальонами и подать с огурцом."]
+            ],
+            // Вторник
+            [
+                ["Яйца взбить с щепоткой соли до однородности, без сильной пены.", "Вылить на разогретую сковороду и готовить на среднем огне 3-4 минуты.", "Когда края схватятся, посыпать тертым сыром и накрыть крышкой на 2 минуты.", "Сложить омлет пополам и подать с ломтиком хлеба."],
+                ["Хлебцы слегка подсушить в тостере до хруста.", "Намазать творожным сыром, при желании добавить зелень или ломтик огурца."],
+                ["Куриное филе нарезать полосками, посолить и обжарить 8-10 минут до готовности.", "Лаваш смазать соусом (йогурт с горчицей), выложить курицу и полоски огурца.", "Завернуть плотным рулетом, подогнуть края и разрезать пополам."],
+                ["Йогурт выложить в пиалу.", "По желанию добавить корицу, ягоды или чайную ложку меда."],
+                ["Тофу обсушить, нарезать кубиками и замариновать в соевом соусе 10 минут.", "Брокколи разобрать на соцветия и бланшировать 3 минуты в кипятке.", "Выложить на противень, сбрызнуть маслом и запечь 15-18 минут при 200 °C.", "Подать горячим, посыпав кунжутом."]
+            ],
+            // Среда
+            [
+                ["Смешать семена чиа с кокосовым молоком и оставить на 5 минут.", "Перемешать еще раз, чтобы не осталось комков, и убрать в холодильник на ночь.", "Утром выложить пудинг в стакан и украсить ломтиками банана."],
+                ["Грушу вымыть и нарезать дольками.", "Подавать сразу, чтобы сохранить хруст и витамины."],
+                ["Макароны отварить в подсоленной воде до аль денте (на 1 минуту меньше, чем на упаковке).", "Фарш обжарить 5-7 минут, пока не испарится жидкость.", "Добавить томатную пасту и 100 мл воды, тушить 15 минут на слабом огне.", "Соединить соус с макаронами, прогреть вместе 1 минуту и подать."],
+                ["Кефир достать заранее, чтобы он не был слишком холодным.", "Пить небольшими глотками, можно добавить ложку отрубей."],
+                ["Помидор и огурец нарезать крупными кубиками.", "Фету нарезать кубиками и добавить к овощам.", "Заправить оливковым маслом с щепоткой орегано и аккуратно перемешать."]
+            ],
+            // Четверг
+            [
+                ["Хлеб подсушить в тостере до хруста.", "Авокадо размять вилкой с солью и каплей лимона, намазать на тосты.", "Яйцо отварить всмятку 4-5 минут или приготовить пашот и выложить сверху."],
+                ["Творог выложить в пиалу.", "Добавить по вкусу зелень, огурец или ложку йогурта."],
+                ["Фарш смешать с мелко нарезанным луком, посолить и поперчить.", "Сформировать биточки и обжарить по 4 минуты с каждой стороны.", "Картофель отварить 20-25 минут или запечь дольками.", "Сложить биточки в сотейник, добавить 50 мл воды и потомить 10 минут под крышкой."],
+                ["Морковь вымыть, очистить и нарезать палочками.", "Подать с хумусом для макания."],
+                ["Фасоль отварить 5-7 минут в кипящей воде, чтобы осталась хрустящей.", "Сыр нарезать тонкими пластинами.", "Фасоль обжарить на масле с чесноком 2 минуты.", "Смешать горячую фасоль с сыром, поперчить и сразу подать."]
+            ],
+            // Пятница
+            [
+                ["Творог растереть с яйцом, добавить рисовую муку и щепотку соли.", "Сформировать сырники и обвалять их в муке.", "Обжарить по 3-4 минуты с каждой стороны на среднем огне.", "Подать горячими с медом."],
+                ["Сварить кофе или залить молотый кипятком.", "Шоколад разломать на дольки и есть небольшими кусочками вместе с кофе."],
+                ["Бурый рис промыть и отварить 25-30 минут до мягкости.", "Индейку нарезать кубиками и обжарить 5 минут до побеления.", "Добавить карри, влить сливки и тушить 10 минут.", "Подать индейку поверх риса."],
+                ["Виноград вымыть под проточной водой.", "По желанию охладить перед подачей."],
+                ["Говядину посолить, поперчить и быстро обжарить по 3 минуты с каждой стороны.", "Дать мясу отдохнуть 5 минут и нарезать тонкими ломтиками.", "Рукколу и черри выложить на тарелку, добавить мясо.", "Сбрызнуть маслом с лимоном и подать."]
+            ],
+            // Суббота
+            [
+                ["Овсяные хлопья измельчить в блендере в муку.", "Смешать с яйцом и молоком до однородного теста, посолить.", "Вылить на разогретую сковороду и готовить по 3 минуты с каждой стороны.", "На половину блина выложить творожный сыр и сложить пополам."],
+                ["Банан очистить и нарезать кружками.", "Орехи порубить, при желании подсушить 2 минуты на сухой сковороде."],
+                ["Чечевицу промыть, морковь нарезать кубиками.", "Залить овощи 500 мл воды и варить 20 минут до мягкости.", "Пробить блендером до кремовой текстуры.", "Влить сливки, посолить и прогреть 2 минуты, не доводя до кипения."],
+                ["В шейкер налить молоко.", "Добавить скуп протеина и взбить 20-30 секунд до полного растворения."],
+                ["Индейку нарезать кубиками и обжарить 5 минут до золотистого цвета.", "Добавить нарезанные кабачок и помидор, посолить.", "Влить 100 мл воды и тушить под крышкой 20-25 минут.", "Дать настояться 5 минут перед подачей."]
+            ],
+            // Воскресенье
+            [
+                ["Творог взбить с греческим йогуртом до кремовой текстуры.", "Яблоко натереть на крупной терке или нарезать мелкими кубиками.", "Собрать крем слоями, сверху добавить яблоко и щепотку корицы."],
+                ["Яйцо аккуратно опустить в кипящую воду.", "Варить 4-5 минут, затем охладить в холодной воде и очистить."],
+                ["Картофель нарезать дольками, посолить, сбрызнуть маслом и запекать 25 минут при 200 °C.", "Филе посолить и обжарить по 6 минут с каждой стороны.", "Дать мясу отдохнуть 5 минут и нарезать.", "Подать с картофелем и свежим огурцом."],
+                ["Ягоды вымыть и обсушить на полотенце.", "Подавать свежими, при желании слегка присыпать корицей."],
+                ["Тофу обсушить и нарезать кубиками, кабачок — кружками.", "Смешать с маслом, солью и травами.", "Выложить на противень и запечь 20 минут при 200 °C.", "Подать горячим, посыпав зеленью."]
+            ]
+        ];
+
+        weeklyMasterPlan.forEach((day, di) => {
+            MEAL_KEYS_ORDER.forEach((k, ki) => {
+                if (!day[k]) return;
+                if (!day[k].cookTime) day[k].cookTime = COOK_TIME_MAP[di][ki];
+                if (RECIPE_STEPS[di] && RECIPE_STEPS[di][ki]) day[k].steps = RECIPE_STEPS[di][ki];
+            });
+        });
+
+        function toggleMealEaten(dayIdx, mealKey) {
+            const key = `${dayIdx}_${mealKey}`;
+            eatenMealsState[key] = !eatenMealsState[key];
+            localStorage.setItem('lifeOS_eaten_meals', JSON.stringify(eatenMealsState));
+            showDay(activeDayIndex);
+            renderTodayDashboard();
+        }
+
+        function calculateAndGenerateWeek() {
+            const height = document.getElementById('height').value;
+            const weight = document.getElementById('weight').value;
+            const goal = document.getElementById('goal').value;
+            personCount = parseInt(document.getElementById('persons').value);
+
+            if (!height || !weight) return alert("Введите рост и вес!");
+            let base = (10 * weight) + (6.25 * height) - 50 + 5;
+            if (goal === 'lose') base -= 400;
+            if (goal === 'gain') base += 400;
+            const target = Math.round(base);
+
+            document.getElementById('calorie-result').textContent = `Норма: ${target} ккал/день`;
+            localStorage.setItem('smartFitnessDataOrig', JSON.stringify({ height, weight, goal, targetCalories: target, persons: personCount }));
+            document.getElementById('days-nav').style.display = 'flex';
+            markTodayButton();
+            showDay(realTodayIndex);
+            renderTodayDashboard();
+        }
+
+        function markTodayButton() {
+            for (let i = 0; i < 7; i++) {
+                const btn = document.getElementById(`day-btn-${i}`);
+                if (btn) btn.classList.toggle('is-today', i === realTodayIndex);
+            }
+        }
+
+        /* ================= МОДАЛКА РЕЦЕПТА ================= */
+        const MEAL_TITLES = {
+            breakfast: '🍳 Завтрак', snack1: '🍎 Перекус 1', lunch: '🍲 Обед',
+            snack2: '🥪 Перекус 2', dinner: '🥗 Ужин'
+        };
+
+        function personWord(n) {
+            if (n === 1) return 'персону';
+            if (n < 5) return 'персоны';
+            return 'персон';
+        }
+
+        function openRecipe(dayIdx, mealKey, title) {
+            const planDay = currentWeeklyPlan[dayIdx];
+            const meal = planDay && planDay[mealKey];
+            if (!meal) return;
+            const label = title || MEAL_TITLES[mealKey] || '';
+
+            const m = meal.macros;
+            let html = `
+                <div style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">${label} • ${planDay.dayName}</div>
+                <div>
+                    <span class="macro-chip">🔥 ${m.kcal} ккал</span>
+                    <span class="macro-chip">Б ${m.p} г</span>
+                    <span class="macro-chip">Ж ${m.f} г</span>
+                    <span class="macro-chip">У ${m.c} г</span>
+                </div>
+                <div class="recipe-section">Ингредиенты · на ${personCount} ${personWord(personCount)}</div>
+            `;
+            meal.ingredients.forEach(i => {
+                html += `<div class="recipe-ing-row"><span>${i.n}</span><b>${(i.a * personCount).toFixed(0)} ${i.u}</b></div>`;
+            });
+            if (meal.steps && meal.steps.length) {
+                html += `<div class="recipe-section">Приготовление${meal.cookTime ? ` · ⏱ ${meal.cookTime} мин` : ''}</div><ol class="recipe-steps">`;
+                meal.steps.forEach(s => { html += `<li>${s}</li>`; });
+                html += `</ol>`;
+            }
+            if (meal.prepTip) html += `<div class="recipe-hint">${meal.prepTip}</div>`;
+            html += `<div class="recipe-hint">Порции рассчитаны на ${personCount} ${personWord(personCount)}. Изменить — в блоке «Мои параметры и порционность».</div>`;
+
+            document.getElementById('recipe-title').textContent = meal.name;
+            document.getElementById('recipe-body').innerHTML = html;
+            document.getElementById('recipe-modal').classList.add('open');
+        }
+
+        function openWine(dayIdx) {
+            const planDay = currentWeeklyPlan[dayIdx];
+            const w = planDay && planDay.dinner && planDay.dinner.winePairing;
+            if (!w) return;
+
+            document.getElementById('recipe-title').textContent = '🥂 ' + w.name;
+            document.getElementById('recipe-body').innerHTML = `
+                <div style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">Вино к ужину • ${planDay.dayName}</div>
+                <div>
+                    <span class="macro-chip">🍷 ${150 * personCount} мл</span>
+                    <span class="macro-chip">🔥 ${w.macros.kcal} ккал/100 мл</span>
+                    ${w.bottleRef ? `<span class="macro-chip">${w.bottleRef}</span>` : ''}
+                </div>
+                <div class="recipe-section">Подается к блюду</div>
+                <div>${planDay.dinner.name}</div>
+                <div class="recipe-wine" style="margin-top:12px;"><b>${w.style || ''}</b><br>${w.note}</div>
+                <div class="recipe-hint">Объем указан на ${personCount} ${personWord(personCount)}.</div>
+            `;
+            document.getElementById('recipe-modal').classList.add('open');
+        }
+
+        function closeRecipe(e) {
+            const overlay = document.getElementById('recipe-modal');
+            if (e && e.target !== overlay) return; // клик по содержимому окна не закрывает
+            overlay.classList.remove('open');
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeRecipe();
+        });
+
+        function showDay(idx) {
+            activeDayIndex = idx;
+            document.querySelectorAll('.pill-day-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+            const day = currentWeeklyPlan[idx];
+            const wine = day.dinner.winePairing;
+
+            let html = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <div style="font-weight:bold; font-size:18px;">📅 ${day.dayName} ${idx === realTodayIndex ? '<span style="color:#ef4444; font-size:11.5px; font-weight:800; margin-left:6px;">● СЕГОДНЯ</span>' : ''}</div>
+                    <span style="font-size:12px; font-weight:700; color:var(--text-muted); background:var(--card-sub); padding:4px 8px; border-radius:6px;">👥 ${personCount} чел.</span>
+                </div>
+                ${renderMealCardHTML(day.breakfast, "🍳 Завтрак", idx, "breakfast")}
+                ${renderMealCardHTML(day.snack1, "🍎 Перекус 1", idx, "snack1")}
+                ${renderMealCardHTML(day.lunch, "🍲 Обед", idx, "lunch")}
+                ${renderMealCardHTML(day.snack2, "🥪 Перекус 2", idx, "snack2")}
+                ${renderMealCardHTML(day.dinner, "🥗 Ужин", idx, "dinner")}
+                
+                <div class="meal-card-item wine" onclick="openWine(${idx})">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                        <b>🥂 Вино к ужину: ${wine.name}</b>
+                        <span style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                            <span style="font-size:12px;">${wine.bottleRef}</span>
+                            <span class="meal-chevron">›</span>
+                        </span>
+                    </div>
+                    <div style="font-size:13px; margin:4px 0;">${150 * personCount} мл (${wine.macros.kcal} ккал). <i>${wine.style}</i></div>
+                    <div style="font-size:12.5px; opacity:0.9;">💡 ${wine.note}</div>
+                </div>
+            `;
+            document.getElementById('meal-plan-container').innerHTML = html;
+            updateGroceryList();
+        }
+
+        function renderMealCardHTML(meal, title, dayIdx, mealKey) {
+            const isEaten = !!eatenMealsState[`${dayIdx}_${mealKey}`];
+            return `
+                <div class="meal-card-item ${isEaten ? 'eaten' : ''}" onclick="openRecipe(${dayIdx}, '${mealKey}', '${title}')">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+                        <div>
+                            <div style="font-weight:700; font-size:15.5px;">${title}: ${meal.name}</div>
+                            <div class="macros-pill-badge">${meal.macros.kcal} ккал${meal.cookTime ? ` • ⏱ ${meal.cookTime} мин` : ''} • Б:${meal.macros.p} Ж:${meal.macros.f} У:${meal.macros.c}</div>
+                            ${meal.prepTip ? `<div style="font-size:12px; color:var(--purple); margin-top:2px;">${meal.prepTip}</div>` : ''}
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                            <button class="btn-secondary" style="padding:4px 9px; font-size:11.5px; background:${isEaten ? 'var(--success)' : ''}; color:${isEaten ? '#fff' : ''};" onclick="event.stopPropagation(); toggleMealEaten(${dayIdx}, '${mealKey}')">
+                                ${isEaten ? '✓ Съедено' : 'Съесть'}
+                            </button>
+                            <span class="meal-chevron">›</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function onPersonsChanged() {
+            personCount = parseInt(document.getElementById('persons').value);
+            showDay(activeDayIndex);
+            renderTodayDashboard();
+        }
+
+        function setGroceryMode(m) {
+            groceryMode = m;
+            document.getElementById('tab-daily').style.borderColor = (m === 'daily') ? 'var(--accent-primary)' : '';
+            document.getElementById('tab-weekly').style.borderColor = (m === 'weekly') ? 'var(--accent-primary)' : '';
+            updateGroceryList();
+        }
+
+        function getGroceryCategory(name) {
+            if (["Яблоко","Груша","Банан","Виноград","Ягоды","Помидор","Помидоры черри","Огурец","Морковь","Лук","Кабачок","Брокколи","Стручковая фасоль","Салат Айсберг","Руккола","Авокадо"].includes(name)) return "🥦 Овощи и фрукты";
+            if (["Куриное филе","Свиная вырезка","Фарш говяжий","Филе индейки","Говядина постная"].includes(name)) return "🥩 Мясо и птица";
+            if (["Молоко","Сыр твердый","Творог 5%","Мягкий творог 5%","Сыр творожный","Сыр Фета","Греческий йогурт","Кефир 2.5%","Сливки 10%","Яйца"].includes(name)) return "🧀 Молочный отдел";
+            return "🌾 Бакалея и снеки";
+        }
+
+        function toggleGroceryCheck(id) {
+            checkedGroceries[id] = !checkedGroceries[id];
+            localStorage.setItem('lifeOS_checked_groceries', JSON.stringify(checkedGroceries));
+            updateGroceryList();
+        }
+
+        function updateGroceryList() {
+            const hideChecked = document.getElementById('hide-checked-groceries')?.checked;
+            let rawIngs = [];
+
+            if (groceryMode === 'daily') {
+                const d = currentWeeklyPlan[activeDayIndex];
+                rawIngs = [...d.breakfast.ingredients, ...d.snack1.ingredients, ...d.lunch.ingredients, ...d.snack2.ingredients, ...d.dinner.ingredients];
+            } else {
+                currentWeeklyPlan.forEach(d => {
+                    rawIngs.push(...d.breakfast.ingredients, ...d.snack1.ingredients, ...d.lunch.ingredients, ...d.snack2.ingredients, ...d.dinner.ingredients);
+                });
+            }
+
+            const grouped = {};
+            rawIngs.forEach(i => {
+                const k = `${i.n}_${i.u}`;
+                if (!grouped[k]) grouped[k] = { n: i.n, u: i.u, a: 0 };
+                grouped[k].a += (i.a * personCount);
+            });
+
+            const categorized = {};
+            let totalSum = 0;
+            Object.values(grouped).forEach(item => {
+                const cost = Math.round((priceBook[item.n] || 0.3) * item.a);
+                totalSum += cost;
+                const cat = getGroceryCategory(item.n);
+                if (!categorized[cat]) categorized[cat] = [];
+                categorized[cat].push({ ...item, cost });
+            });
+
+            let listHtml = '';
+            for (const [catName, items] of Object.entries(categorized)) {
+                let catItemsHtml = '';
+                items.forEach(it => {
+                    const id = `g_${it.n}_${groceryMode}`;
+                    const isChecked = !!checkedGroceries[id];
+                    if (hideChecked && isChecked) return;
+                    catItemsHtml += `
+                        <li style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-color); ${isChecked ? 'opacity:0.35; text-decoration:line-through;' : ''}">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleGroceryCheck('${id}')" style="margin:0; width:16px; height:16px;">
+                                <span style="font-size:13.5px;">${it.n} — <b>${it.a.toFixed(0)} ${it.u}</b></span>
+                            </label>
+                            <span style="font-size:12px; color:var(--success); font-weight:700;">~${it.cost} ₽</span>
+                        </li>
+                    `;
+                });
+                if (catItemsHtml) {
+                    listHtml += `<div style="font-size:11.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin:12px 0 4px 0;">${catName}</div>${catItemsHtml}`;
+                }
+            }
+
+            document.getElementById('grocery-list-container').innerHTML = listHtml || '<div style="color:var(--text-muted); padding:10px;">Корзина пуста</div>';
+            document.getElementById('grocery-total-container').innerHTML = `
+                <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border-color); font-weight:bold; text-align:right;">
+                    Итого корзина: <span style="color:var(--success);">~${totalSum} ₽</span>
+                </div>
+            `;
+        }
+
+        /* 3. ФИНАНСЫ */
+        const FIN_CATEGORIES = {
+            expense: [
+                { id: "groceries", name: "🛒 Продукты", rule: "needs" },
+                { id: "rent", name: "🏠 Жилье & ЖКХ", rule: "needs" },
+                { id: "obligations", name: "🏦 Обязательные платежи", rule: "needs" },
+                { id: "transport", name: "🚗 Транспорт", rule: "needs" },
+                { id: "wine", name: "🍾 Вино & Ужины", rule: "wants" },
+                { id: "shopping", name: "🛍️ Покупки", rule: "wants" },
+                { id: "other", name: "📦 Другое", rule: "wants" }
+            ],
+            income: [
+                { id: "salary", name: "💵 Зарплата", rule: "income" },
+                { id: "freelance", name: "💻 Проекты", rule: "income" }
+            ],
+            invest: [
+                { id: "broker", name: "📊 Брокер", rule: "savings" },
+                { id: "deposit_add", name: "🏦 Вклад", rule: "savings" }
+            ]
+        };
+
+        /* Категории «обязательных» платежей: их сумма резервируется и не попадает
+           в дневной лимит трат, пока платёж не проведён. */
+        const FIXED_CATEGORY_IDS = ['rent', 'obligations'];
+
+        let financeState = {
+            settings: { monthlyIncome: 160000, monthlyFixed: 0 }, // доход и обязательные платежи месяца — база для 50/30/20 и дневного лимита
+            accounts: [
+                { id: "acc_1", name: "Основная карта", balance: 65000, type: "card", rate: 0 },
+                { id: "acc_2", name: "Вклад (Подушка)", balance: 320000, type: "deposit", rate: 18.0 },
+                { id: "acc_3", name: "Брокерский счет", balance: 210000, type: "invest", rate: 0 }
+            ],
+            goals: [
+                { id: "goal_1", name: "🛡️ Подушка безопасности (6 мес)", target: 500000, current: 320000 }
+            ],
+            transactions: [
+                { id: "tx_1", type: "income", amount: 160000, accountId: "acc_1", categoryId: "salary", desc: "Зарплата", date: new Date().toISOString() },
+                { id: "tx_2", type: "expense", amount: 45000, accountId: "acc_1", categoryId: "rent", desc: "Аренда и ЖКХ", date: new Date().toISOString() },
+                { id: "tx_3", type: "expense", amount: 6500, accountId: "acc_1", categoryId: "wine", desc: "Вино к ужину и ресторан", date: new Date().toISOString() }
+            ]
+        };
+
+        let currentActiveType = 'expense';
+
+        function initFinance() {
+            const saved = localStorage.getItem('lifeOS_fin_data');
+            if (saved) {
+                try { financeState = JSON.parse(saved); } catch(e){}
+            }
+            // Миграция для данных, сохранённых до появления полей «Мой доход» и
+            // «Обязательные платежи»: доход берём из последней доходной операции,
+            // обязательства не угадываем (0 — значит резерв не создаётся).
+            if (!financeState.settings || typeof financeState.settings !== 'object') financeState.settings = {};
+            const st = financeState.settings;
+            if (typeof st.monthlyIncome !== 'number') {
+                const lastIncome = (financeState.transactions || []).find(t => t.type === 'income');
+                st.monthlyIncome = lastIncome ? lastIncome.amount : 0;
+            }
+            if (typeof st.monthlyFixed !== 'number') st.monthlyFixed = 0;
+
+            const incomeInput = document.getElementById('fin-income');
+            if (incomeInput) incomeInput.value = st.monthlyIncome || '';
+            const fixedInput = document.getElementById('fin-fixed');
+            if (fixedInput) fixedInput.value = st.monthlyFixed || '';
+            setTxType('expense');
+            renderFinanceUI();
+        }
+
+        function saveFinanceData() {
+            localStorage.setItem('lifeOS_fin_data', JSON.stringify(financeState));
+            renderFinanceUI();
+            renderTodayDashboard();
+        }
+
+        function saveFinSettings() {
+            if (!financeState.settings) financeState.settings = { monthlyIncome: 0, monthlyFixed: 0 };
+            const incEl = document.getElementById('fin-income');
+            const fixEl = document.getElementById('fin-fixed');
+            financeState.settings.monthlyIncome = Math.max(0, parseFloat(incEl && incEl.value) || 0);
+            financeState.settings.monthlyFixed = Math.max(0, parseFloat(fixEl && fixEl.value) || 0);
+            saveFinanceData();
+        }
+
+        function setTxType(type) {
+            currentActiveType = type;
+            ['expense', 'income', 'invest', 'transfer'].forEach(t => {
+                const el = document.getElementById(`chip-${t}`);
+                if (el) el.className = `type-chip-btn ${t === type ? 'active ' + type : ''}`;
+            });
+
+            const isTransfer = (type === 'transfer');
+            document.getElementById('transfer-destination-wrap').style.display = isTransfer ? 'block' : 'none';
+            document.getElementById('standard-cat-wrap').style.display = isTransfer ? 'none' : 'flex';
+            document.getElementById('tx-acc-label').textContent = isTransfer ? 'Откуда:' : 'Счет:';
+
+            if (!isTransfer) {
+                const select = document.getElementById('tx-category');
+                const list = FIN_CATEGORIES[type] || [];
+                select.innerHTML = list.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            }
+        }
+
+        function submitTransaction() {
+            const amount = parseFloat(document.getElementById('tx-amount').value);
+            const fromId = document.getElementById('tx-account').value;
+
+            if (!amount || amount <= 0) return alert('Введите корректную сумму!');
+            const fromAcc = financeState.accounts.find(a => a.id === fromId);
+            if (!fromAcc) return alert('Выберите счет!');
+
+            if (currentActiveType === 'transfer') {
+                const toId = document.getElementById('tx-account-to').value;
+                if (fromId === toId) return alert('Выберите разные счета для перевода!');
+                const toAcc = financeState.accounts.find(a => a.id === toId);
+                fromAcc.balance -= amount;
+                toAcc.balance += amount;
+                financeState.transactions.unshift({
+                    id: 'tx_' + Date.now(),
+                    type: 'transfer',
+                    amount: amount,
+                    accountId: fromId,
+                    desc: `Перевод: ${fromAcc.name} → ${toAcc.name}`,
+                    date: new Date().toISOString()
+                });
+            } else {
+                const categoryId = document.getElementById('tx-category').value;
+                const desc = document.getElementById('tx-desc').value.trim() || 'Без описания';
+
+                if (currentActiveType === 'income') fromAcc.balance += amount;
+                else fromAcc.balance -= amount;
+
+                financeState.transactions.unshift({
+                    id: 'tx_' + Date.now(),
+                    type: currentActiveType,
+                    amount: amount,
+                    accountId: fromId,
+                    categoryId: categoryId,
+                    desc: desc,
+                    date: new Date().toISOString()
+                });
+            }
+
+            document.getElementById('tx-amount').value = '';
+            document.getElementById('tx-desc').value = '';
+            saveFinanceData();
+        }
+
+        function deleteTransaction(txId) {
+            const idx = financeState.transactions.findIndex(t => t.id === txId);
+            if (idx === -1) return;
+            const tx = financeState.transactions[idx];
+            const acc = financeState.accounts.find(a => a.id === tx.accountId);
+            if (acc && tx.type !== 'transfer') {
+                if (tx.type === 'income') acc.balance -= tx.amount;
+                else acc.balance += tx.amount;
+            }
+            financeState.transactions.splice(idx, 1);
+            saveFinanceData();
+        }
+
+        function promptAddAccount() {
+            const name = prompt('Название счета (например, "Вклад Сбер"):');
+            if (!name) return;
+            const balance = parseFloat(prompt('Текущий баланс (₽):', '0') || '0');
+            const type = prompt('Тип (card, deposit, invest):', 'card') || 'card';
+            let rate = 0;
+            if (type === 'deposit') rate = parseFloat(prompt('Ставка по вкладу % годовых:', '18') || '0');
+            financeState.accounts.push({ id: 'acc_' + Date.now(), name, balance, type, rate });
+            saveFinanceData();
+        }
+
+        function editAccount(accId) {
+            const acc = financeState.accounts.find(a => a.id === accId);
+            if (!acc) return;
+            const newBal = prompt(`Новый баланс для "${acc.name}" (₽):`, acc.balance);
+            if (newBal !== null && !isNaN(parseFloat(newBal))) {
+                acc.balance = parseFloat(newBal);
+                saveFinanceData();
+            }
+        }
+
+        function deleteAccount(accId) {
+            if (financeState.accounts.length <= 1) return alert('Нельзя удалить единственный счет!');
+            if (confirm('Удалить счет?')) {
+                financeState.accounts = financeState.accounts.filter(a => a.id !== accId);
+                saveFinanceData();
+            }
+        }
+
+        function syncGroceryToFinance() {
+            const totalText = document.getElementById('grocery-total-container').textContent;
+            const match = totalText.match(/~(\d+)\s*₽/);
+            const sum = match ? parseFloat(match[1]) : 0;
+            if (!sum || sum <= 0) return alert('Сначала сформируйте меню питания!');
+            const acc = financeState.accounts[0];
+            if (confirm(`Записать ~${sum} ₽ со счета "${acc.name}" в расходы?`)) {
+                acc.balance -= sum;
+                financeState.transactions.unshift({
+                    id: 'tx_' + Date.now(),
+                    type: 'expense',
+                    amount: sum,
+                    accountId: acc.id,
+                    categoryId: 'groceries',
+                    desc: 'Продуктовая корзина (Smart Meal Prep)',
+                    date: new Date().toISOString()
+                });
+                saveFinanceData();
+            }
+        }
+
+        function renderFinanceUI() {
+            const netWorth = financeState.accounts.reduce((s, a) => s + a.balance, 0);
+            document.getElementById('fin-net-worth').textContent = `${Math.round(netWorth).toLocaleString('ru-RU')} ₽`;
+
+            const incomeInput = document.getElementById('fin-income');
+            const fixedInput = document.getElementById('fin-fixed');
+            const income = Math.max(0, (financeState.settings && financeState.settings.monthlyIncome) || 0);
+            const monthlyFixed = Math.max(0, (financeState.settings && financeState.settings.monthlyFixed) || 0);
+            if (incomeInput && document.activeElement !== incomeInput) incomeInput.value = income > 0 ? income : '';
+            if (fixedInput && document.activeElement !== fixedInput) fixedInput.value = monthlyFixed > 0 ? monthlyFixed : '';
+
+            // План по правилу 50 / 30 / 20 — от «Моего дохода в месяц»
+            const needsPlan = income * 0.5; // 50% — нужды
+            const wantsPlan = income * 0.3; // 30% — желания / стиль жизни
+            const savPlan = income * 0.2;   // 20% — сбережения
+
+            // Факт считаем ТОЛЬКО за текущий месяц (раньше брались все операции за всё время)
+            const now = new Date();
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            const daysLeft = Math.max(1, daysInMonth - now.getDate() + 1); // включая сегодня
+
+            let needsSpent = 0;
+            let wantsSpent = 0;
+            let savingsDone = 0;
+            let fixedSpent = 0; // уже оплаченные обязательные платежи месяца
+            let passiveMonthly = 0;
+
+            financeState.accounts.forEach(a => {
+                if (a.type === 'deposit' && a.rate > 0) passiveMonthly += (a.balance * (a.rate / 100)) / 12;
+            });
+            document.getElementById('fin-passive-forecast').textContent = `Прогноз вкладов: +${Math.round(passiveMonthly).toLocaleString('ru-RU')} ₽/мес`;
+
+            const allCats = [...FIN_CATEGORIES.expense, ...FIN_CATEGORIES.income, ...FIN_CATEGORIES.invest];
+            financeState.transactions.forEach(t => {
+                if (new Date(t.date) < monthStart) return;
+                const cat = allCats.find(c => c.id === t.categoryId);
+                const rule = cat ? cat.rule : (t.type === 'invest' ? 'savings' : 'wants');
+                if (rule === 'needs') needsSpent += t.amount;
+                if (rule === 'wants') wantsSpent += t.amount;
+                if (rule === 'savings') savingsDone += t.amount;
+                if (FIXED_CATEGORY_IDS.indexOf(t.categoryId) > -1) fixedSpent += t.amount;
+            });
+
+            document.getElementById('fin-month-income-badge').textContent = income > 0
+                ? `Доход: ${Math.round(income).toLocaleString('ru-RU')} ₽/мес`
+                : 'Доход не задан';
+            document.getElementById('fin-savings-rate').textContent = income > 0
+                ? `${Math.round((savingsDone / income) * 100)}%`
+                : '0%';
+
+            // Дневной лимит = (остаток нужд + остаток желаний − резерв обязательных платежей)
+            // делённый на оставшиеся дни месяца. Сбережения (20%) не трогаем.
+            const remainingNeeds = Math.max(0, needsPlan - needsSpent);
+            const remainingWants = Math.max(0, wantsPlan - wantsSpent);
+            // Резерв — сколько обязательных платежей ещё предстоит оплатить:
+            // он сам уменьшается по мере проведения платежей по FIXED_CATEGORY_IDS
+            // и никогда не превышает остаток «нужд».
+            const reserve = Math.min(Math.max(0, monthlyFixed - fixedSpent), remainingNeeds);
+            const freePool = Math.max(0, remainingNeeds + remainingWants - reserve);
+            const dailyBudget = income > 0 ? Math.round(freePool / daysLeft) : 0;
+
+            document.getElementById('fin-daily-budget').textContent = income > 0
+                ? `${dailyBudget.toLocaleString('ru-RU')} ₽/день`
+                : 'Укажите доход';
+            document.getElementById('fin-days-left').textContent = income > 0
+                ? `${Math.round(freePool).toLocaleString('ru-RU')} ₽ свободно${reserve > 0 ? ` • резерв ${Math.round(reserve).toLocaleString('ru-RU')} ₽` : ''} • осталось ${daysLeft} дн.`
+                : 'задайте «Мой доход в месяц»';
+
+            const liquid = financeState.accounts.filter(a => a.type === 'deposit' || a.type === 'card').reduce((s, a) => s + a.balance, 0);
+            document.getElementById('fin-runway').textContent = needsPlan > 0
+                ? `${(liquid / needsPlan).toFixed(1)} мес.`
+                : '—';
+
+            updateRuleBar('rule-needs-bar', 'rule-needs-text', needsSpent, needsPlan);
+            updateRuleBar('rule-wants-bar', 'rule-wants-text', wantsSpent, wantsPlan);
+            updateRuleBar('rule-savings-bar', 'rule-savings-text', savingsDone, savPlan);
+
+            let accHtml = '';
+            let optHtml = '';
+            financeState.accounts.forEach(a => {
+                accHtml += `
+                    <div class="acc-card-glass">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="acc-badge ${a.type}">${a.type === 'deposit' ? `Вклад ${a.rate}%` : (a.type === 'invest' ? 'Инвест' : 'Карта')}</span>
+                            <div>
+                                <button class="btn-secondary" style="padding:2px 6px; font-size:11px;" onclick="editAccount('${a.id}')">✏️</button>
+                                <button class="btn-secondary" style="padding:2px 6px; font-size:11px;" onclick="deleteAccount('${a.id}')">✕</button>
+                            </div>
+                        </div>
+                        <div style="font-weight:700; font-size:13.5px; margin-top:6px;">${a.name}</div>
+                        <div style="font-size:17px; font-weight:800; margin-top:2px; cursor:pointer;" onclick="editAccount('${a.id}')">${Math.round(a.balance).toLocaleString('ru-RU')} ₽</div>
+                    </div>
+                `;
+                optHtml += `<option value="${a.id}">${a.name} (${Math.round(a.balance)} ₽)</option>`;
+            });
+            document.getElementById('accounts-container').innerHTML = accHtml;
+            document.getElementById('tx-account').innerHTML = optHtml;
+            document.getElementById('tx-account-to').innerHTML = optHtml;
+
+            let txHtml = '';
+            financeState.transactions.slice(0, 15).forEach(t => {
+                const isInc = t.type === 'income';
+                const isTrf = t.type === 'transfer';
+                const sign = isInc ? '+' : (isTrf ? '' : '-');
+                const color = isInc ? 'var(--success)' : (isTrf ? 'var(--purple)' : 'var(--text-main)');
+                txHtml += `
+                    <li class="tx-item" style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-color);">
+                        <div>
+                            <div style="font-weight:700; font-size:13.5px;">${t.desc}</div>
+                            <div style="font-size:11px; color:var(--text-muted);">${new Date(t.date).toLocaleDateString('ru-RU')}</div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-weight:800; font-size:14px; color:${color};">${sign}${Math.round(t.amount).toLocaleString('ru-RU')} ₽</span>
+                            <button class="btn-secondary" style="padding:2px 6px; font-size:10px;" onclick="deleteTransaction('${t.id}')">✕</button>
+                        </div>
+                    </li>
+                `;
+            });
+            document.getElementById('tx-list-container').innerHTML = txHtml || '<li style="color:var(--text-muted); padding:8px 0;">Транзакций нет</li>';
+        }
+
+        function updateRuleBar(barId, labelId, cur, max) {
+            const pct = max > 0 ? Math.min(100, Math.round((cur / max) * 100)) : 0;
+            const bar = document.getElementById(barId);
+            bar.style.width = `${pct}%`;
+            bar.style.background = cur > max ? 'var(--danger)' : '';
+            document.getElementById(labelId).textContent = `${Math.round(cur).toLocaleString('ru-RU')} / ${Math.round(max).toLocaleString('ru-RU')} ₽ (${pct}%)`;
+        }
+
+        /* 4. ПРИВЫЧКИ */
+        let habitsState = [
+            { id: "h_1", title: "Вода с лимоном натощак", time: "morning", icon: "💧", streak: 5, history: {} },
+            { id: "h_2", title: "Утренняя разминка / растяжка", time: "morning", icon: "🧘‍♂️", streak: 3, history: {} },
+            { id: "h_3", title: "Соблюдать меню питания дня", time: "day", icon: "🥗", streak: 7, history: {} },
+            { id: "h_4", title: "10 000 шагов на свежем воздухе", time: "day", icon: "👟", streak: 2, history: {} },
+            { id: "h_5", title: "Записать вечерние расходы в Хаб", time: "evening", icon: "💰", streak: 12, history: {} }
+        ];
+
+        function getTodayKey() { return new Date().toISOString().slice(0, 10); }
+
+        function initHabits() {
+            const saved = localStorage.getItem('lifeOS_habits_data');
+            if (saved) {
+                try { habitsState = JSON.parse(saved); } catch(e){}
+            }
+            renderHabitsUI();
+        }
+
+        function saveHabitsData() {
+            localStorage.setItem('lifeOS_habits_data', JSON.stringify(habitsState));
+            renderHabitsUI();
+            renderTodayDashboard();
+        }
+
+        function toggleHabit(id, dateKey) {
+            const h = habitsState.find(item => item.id === id);
+            if (!h) return;
+            const targetDate = dateKey || getTodayKey();
+            if (h.history[targetDate]) {
+                delete h.history[targetDate];
+                h.streak = Math.max(0, (h.streak || 1) - 1);
+            } else {
+                h.history[targetDate] = true;
+                h.streak = (h.streak || 0) + 1;
+            }
+            saveHabitsData();
+        }
+
+        function promptAddHabit() {
+            const title = prompt('Название пункта:');
+            if (!title) return;
+            const icon = prompt('Эмодзи:', '✨') || '✨';
+            const time = prompt('Время суток (morning, day, evening):', 'morning') || 'morning';
+            habitsState.push({ id: 'h_' + Date.now(), title, time, icon, streak: 0, history: {} });
+            saveHabitsData();
+        }
+
+        function deleteHabit(id) {
+            if (confirm('Удалить пункт?')) {
+                habitsState = habitsState.filter(item => item.id !== id);
+                saveHabitsData();
+            }
+        }
+
+        function renderHabitsUI() {
+            const today = getTodayKey();
+            const last7Days = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(); d.setDate(d.getDate() - i);
+                last7Days.push(d.toISOString().slice(0, 10));
+            }
+
+            renderHabitGroup('morning', 'habits-list-morning', today, last7Days);
+            renderHabitGroup('day', 'habits-list-day', today, last7Days);
+            renderHabitGroup('evening', 'habits-list-evening', today, last7Days);
+
+            // Тепловая карта 28 дней
+            const last28Days = [];
+            for (let i = 27; i >= 0; i--) {
+                const d = new Date(); d.setDate(d.getDate() - i);
+                last28Days.push(d.toISOString().slice(0, 10));
+            }
+            let heatHtml = '';
+            last28Days.forEach(dayStr => {
+                let dones = 0;
+                habitsState.forEach(h => { if (h.history && h.history[dayStr]) dones++; });
+                const ratio = habitsState.length ? (dones / habitsState.length) : 0;
+                let lvl = '';
+                if (ratio > 0.6) lvl = 'lvl-3';
+                else if (ratio > 0.3) lvl = 'lvl-2';
+                else if (ratio > 0) lvl = 'lvl-1';
+                heatHtml += `<div class="heat-cell-unit ${lvl}" title="${dayStr}: ${dones}/${habitsState.length}"></div>`;
+            });
+            document.getElementById('habit-heatmap').innerHTML = heatHtml;
+        }
+
+        function renderHabitGroup(timeGroup, containerId, today, last7Days) {
+            const container = document.getElementById(containerId);
+            const filtered = habitsState.filter(h => h.time === timeGroup);
+            let html = '';
+            filtered.forEach(h => {
+                const isDoneToday = !!h.history[today];
+                let dots = '';
+                last7Days.forEach(dStr => {
+                    const isDone = !!h.history[dStr];
+                    dots += `<div class="week-dot-unit ${isDone ? 'done' : ''}" onclick="toggleHabit('${h.id}', '${dStr}')">${isDone ? '✓' : ''}</div>`;
+                });
+                html += `
+                    <div class="habit-row-item ${isDoneToday ? 'completed' : ''}">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <button class="habit-check-square" onclick="toggleHabit('${h.id}', '${today}')">${isDoneToday ? '✓' : ''}</button>
+                            <span style="font-weight:600; font-size:14px;">${h.icon} ${h.title}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div class="week-dots-flex">${dots}</div>
+                            <span style="font-size:11.5px; font-weight:700; color:#ea580c; background:rgba(234,88,12,0.12); padding:3px 8px; border-radius:12px;">🔥 ${h.streak || 0}</span>
+                            <button class="btn-secondary" style="padding:2px 6px; font-size:10px;" onclick="deleteHabit('${h.id}')">✕</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html || '<div style="font-size:12.5px; color:var(--text-muted); padding:4px 0;">Пунктов нет</div>';
+        }
+
+        /* 5. ГЛАВНЫЙ ЭКРАН «СЕГОДНЯ» */
+        function renderTodayDashboard() {
+            const d = new Date();
+            const dateStr = d.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+            document.getElementById('today-date-str').textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+
+            const hours = d.getHours();
+            let greeting = 'Доброе утро!';
+            if (hours >= 12 && hours < 18) greeting = 'Добрый день!';
+            if (hours >= 18 || hours < 5) greeting = 'Добрый вечер!';
+            document.getElementById('today-greeting-title').textContent = greeting;
+
+            const dailyBudgetText = document.getElementById('fin-daily-budget')?.textContent || '0 ₽/день';
+            document.getElementById('dash-budget-val').textContent = dailyBudgetText.replace('/день', '');
+
+            const savedFit = JSON.parse(localStorage.getItem('smartFitnessDataOrig') || '{}');
+            const targetCal = savedFit.targetCalories || 2000;
+            const currentDayMeals = currentWeeklyPlan[realTodayIndex];
+            const keys = ['breakfast', 'snack1', 'lunch', 'snack2', 'dinner'];
+            let eatenKcal = 0;
+            let eatenCount = 0;
+            keys.forEach(k => {
+                if (eatenMealsState[`${realTodayIndex}_${k}`]) {
+                    eatenKcal += currentDayMeals[k].macros.kcal;
+                    eatenCount++;
+                }
+            });
+            document.getElementById('dash-calories-val').textContent = `${eatenKcal} / ${targetCal} ккал`;
+            document.getElementById('dash-eaten-sub').textContent = `Съедено ${eatenCount} из 5 приемов`;
+
+            let mealsPreviewHtml = '';
+            keys.forEach(k => {
+                const meal = currentDayMeals[k];
+                const isEaten = !!eatenMealsState[`${realTodayIndex}_${k}`];
+                mealsPreviewHtml += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-color); cursor:pointer; ${isEaten ? 'opacity:0.4; text-decoration:line-through;' : ''}" onclick="openRecipe(${realTodayIndex}, '${k}', '${MEAL_TITLES[k]}')">
+                        <div><b style="font-size:14px;">${meal.name}</b> <span style="font-size:12px; color:var(--text-muted); margin-left:4px;">(${meal.macros.kcal} ккал)</span></div>
+                        <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+                            <button class="btn-secondary" style="padding:4px 9px; font-size:11px;" onclick="event.stopPropagation(); toggleMealEaten(${realTodayIndex}, '${k}')">
+                                ${isEaten ? '✓' : 'Съесть'}
+                            </button>
+                            <span class="meal-chevron">›</span>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('dash-meals-preview').innerHTML = mealsPreviewHtml;
+
+            const today = getTodayKey();
+            let habitDones = 0;
+            let habitChecklistHtml = '';
+            habitsState.forEach(h => {
+                const isDone = !!h.history[today];
+                if (isDone) habitDones++;
+                habitChecklistHtml += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border-color);">
+                        <span style="font-size:14px; font-weight:600; ${isDone ? 'text-decoration:line-through; color:var(--text-muted);' : ''}">${h.icon} ${h.title}</span>
+                        <button class="habit-check-square" onclick="toggleHabit('${h.id}', '${today}')">${isDone ? '✓' : ''}</button>
+                    </div>
+                `;
+            });
+            const habitPct = habitsState.length ? Math.round((habitDones / habitsState.length) * 100) : 0;
+            document.getElementById('dash-habits-val').textContent = `${habitPct}%`;
+            document.getElementById('dash-habits-sub').textContent = `${habitDones} из ${habitsState.length} закрыто`;
+            document.getElementById('dash-habits-checklist').innerHTML = habitChecklistHtml;
+        }
+
+        /* 6. ПЕРЕКЛЮЧЕНИЕ ТАБОВ И ИНИЦИАЛИЗАЦИЯ */
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn, .mobile-tab-btn').forEach(b => b.classList.remove('active'));
+
+            const targetSection = document.getElementById(tabId);
+            if (targetSection) targetSection.classList.add('active');
+
+            // Синхронизация подсветки кнопок в десктопном и мобильном меню
+            document.querySelectorAll(`[onclick*="'${tabId}'"]`).forEach(b => b.classList.add('active'));
+
+            // Прокрутка наверх при переключении
+            document.querySelector('.main-wrapper').scrollTop = 0;
+
+            if (tabId === 'today') renderTodayDashboard();
+        }
+
+        window.onload = function() {
+            initTheme();
+
+            const savedFitness = JSON.parse(localStorage.getItem('smartFitnessDataOrig'));
+            if (savedFitness) {
+                document.getElementById('height').value = savedFitness.height || '';
+                document.getElementById('weight').value = savedFitness.weight || '';
+                document.getElementById('goal').value = savedFitness.goal || 'maintain';
+                personCount = savedFitness.persons ? parseInt(savedFitness.persons) : 1;
+                document.getElementById('persons').value = personCount;
+                document.getElementById('calorie-result').textContent = `Норма: ${savedFitness.targetCalories} ккал`;
+                document.getElementById('days-nav').style.display = 'flex';
+                markTodayButton();
+                showDay(realTodayIndex);
+            }
+
+            initFinance();
+            initHabits();
+            renderTodayDashboard();
+        };
+    </script>
+</body>
+</html>
